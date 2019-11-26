@@ -1,0 +1,3 @@
+[submodule "nucleo-f746-144-akashi02/murasaki"]
+	path = nucleo-f746-144-akashi02/murasaki
+	url = https://github.com/suikan4github/murasaki.git
