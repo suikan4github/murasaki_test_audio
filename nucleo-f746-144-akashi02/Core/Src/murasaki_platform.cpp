@@ -17,6 +17,7 @@
 
 /* -------------------- PLATFORM Macros -------------------------- */
 #define AUDIO_CHANNEL_LEN 128
+#define CODEC_ADDRESS 0x3A
 
 /* -------------------- PLATFORM Type and classes -------------------------- */
 
@@ -47,6 +48,7 @@ extern SAI_HandleTypeDef hsai_BlockB1;
 /* -------------------- PLATFORM Prototypes ------------------------- */
 
 void TaskBodyFunction(const void *ptr);
+void I2cSearch(murasaki::I2CMasterStrategy *master);
 
 /* -------------------- PLATFORM Implementation ------------------------- */
 
@@ -100,7 +102,7 @@ void InitPlatform()
                                                       48000, /* Fs Sample/s */
                                                       12000000, /* MCLOCK frequency [Hz] */
                                                       murasaki::platform.i2c_master, /* I2C driver */
-                                                      0x38); /* I2C address of ADAU1361 on Akashi02 */
+                                                      CODEC_ADDRESS); /* I2C address of ADAU1361 on Akashi02 */
     MURASAKI_ASSERT(nullptr != murasaki::platform.codec)
 
     // Initializing audio.
@@ -125,6 +127,8 @@ void ExecPlatform()
 {
     // counter for the demonstration.
     static int count = 0;
+
+    I2cSearch(murasaki::platform.i2c_master);
 
     // Following blocks are sample.
     murasaki::platform.audio_task->Start();
@@ -646,8 +650,8 @@ void TaskBodyFunction(const void *ptr) {
  *
  * This function can be deleted if you don't use.
  */
-#if 0
-void I2cSearch(murasaki::I2CMasterStrategy * master)
+#if 1
+void I2cSearch(murasaki::I2CMasterStrategy *master)
                {
     uint8_t tx_buf[1];
 
@@ -664,7 +668,7 @@ void I2cSearch(murasaki::I2CMasterStrategy * master)
             // check whether device exist or not.
             result = master->Transmit(raw + col, tx_buf, 0);
             if (result == murasaki::ki2csOK)  // device acknowledged.
-                murasaki::debugger->Printf(" %2X", raw + col); // print address
+                murasaki::debugger->Printf(" %2X", raw + col);  // print address
             else if (result == murasaki::ki2csNak)  // no device
                 murasaki::debugger->Printf(" --");
             else
