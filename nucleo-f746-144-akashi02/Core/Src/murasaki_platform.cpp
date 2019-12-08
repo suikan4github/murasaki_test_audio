@@ -114,7 +114,7 @@ void InitPlatform()
     // For demonstration of audio task.
     murasaki::platform.audio_task = new murasaki::SimpleTask(
                                                              "audio_task",
-                                                             256,
+                                                             512,
                                                              murasaki::ktpRealtime,
                                                              nullptr,
                                                              &TaskBodyFunction
@@ -131,7 +131,7 @@ void ExecPlatform()
     I2cSearch(murasaki::platform.i2c_master);
 
     // Following blocks are sample.
-    murasaki::platform.audio_task->Start();
+//    murasaki::platform.audio_task->Start();
 
     // Loop forever
     while (true) {
