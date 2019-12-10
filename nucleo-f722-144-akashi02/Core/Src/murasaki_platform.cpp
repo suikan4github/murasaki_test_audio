@@ -88,8 +88,6 @@ void InitPlatform()
 
     murasaki::platform.i2c_master = new murasaki::I2cMaster(&hi2c1);
 
-#if 0
-
     // Initialize audio peripheral
     // By Akashi02 board design, SAI1_B and SAI1_A are assigned to RX and TX, respectively.
     murasaki::platform.sai = new murasaki::SaiAudioAdaptor(
@@ -120,7 +118,6 @@ void InitPlatform()
                                                              &TaskBodyFunction
                                                              );
     MURASAKI_ASSERT(nullptr != murasaki::platform.audio_task)
-#endif
 }
 
 void ExecPlatform()
@@ -130,7 +127,7 @@ void ExecPlatform()
 
     I2cSearch(murasaki::platform.i2c_master);
 
-//    murasaki::platform.audio_task->Start();
+    murasaki::platform.audio_task->Start();
 
     // Loop forever
     while (true) {
