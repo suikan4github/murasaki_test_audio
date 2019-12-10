@@ -4,3 +4,6 @@
 [submodule "nucleo-f722-144-akashi02/murasaki"]
 	path = nucleo-f722-144-akashi02/murasaki
 	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-h743-144-akashi02/murasaki"]
+	path = nucleo-h743-144-akashi02/murasaki
+	url = git@github.com:suikan4github/murasaki.git
