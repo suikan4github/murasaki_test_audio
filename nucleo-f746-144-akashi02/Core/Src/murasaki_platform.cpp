@@ -17,7 +17,7 @@
 
 /* -------------------- PLATFORM Macros -------------------------- */
 #define AUDIO_CHANNEL_LEN 128
-#define CODEC_ADDRESS 0x3A
+#define CODEC_ADDRESS 0x38
 
 /* -------------------- PLATFORM Type and classes -------------------------- */
 
@@ -131,7 +131,7 @@ void ExecPlatform()
     I2cSearch(murasaki::platform.i2c_master);
 
     // Following blocks are sample.
-//    murasaki::platform.audio_task->Start();
+    murasaki::platform.audio_task->Start();
 
     // Loop forever
     while (true) {
