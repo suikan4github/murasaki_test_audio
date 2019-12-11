@@ -91,9 +91,9 @@ void InitPlatform()
 
     // Initialize audio peripheral
     // By Akashi02 board design, SAI1_B and SAI1_A are assigned to RX and TX, respectively.
-    murasaki::platform.sai = new murasaki::SaiAudioAdaptor(
-                                                           &hsai_BlockB1, /* TX */
-                                                           &hsai_BlockA1); /* RX */
+    murasaki::platform.sai = new murasaki::SaiPortAdaptor(
+                                                          &hsai_BlockB1, /* TX */
+                                                          &hsai_BlockA1); /* RX */
     MURASAKI_ASSERT(nullptr != murasaki::platform.sai)
 
     // CODEC initialization.

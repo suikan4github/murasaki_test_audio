@@ -16,6 +16,8 @@
 // Include the prototype  of functions of this file.
 
 /* -------------------- PLATFORM Macros -------------------------- */
+#define AUDIO_CHANNEL_LEN 128
+#define CODEC_ADDRESS 0x38
 
 /* -------------------- PLATFORM Type and classes -------------------------- */
 
@@ -24,7 +26,7 @@
 // Essential definition.
 // Do not delete
 murasaki::Platform murasaki::platform;
-murasaki::Debugger * murasaki::debugger;
+murasaki::Debugger *murasaki::debugger;
 
 /* ------------------------ STM32 Peripherals ----------------------------- */
 
@@ -38,23 +40,25 @@ murasaki::Debugger * murasaki::debugger;
  * The declaration here is user project dependent.
  */
 // Following block is just sample.
-#if 0
-extern I2C_HandleTypeDef hi2c1;
-extern I2C_HandleTypeDef hi2c2;
-extern SPI_HandleTypeDef hspi1;
-extern SPI_HandleTypeDef hspi4;
-extern UART_HandleTypeDef huart2;
-#endif
 extern UART_HandleTypeDef huart3;
+extern I2C_HandleTypeDef hi2c1;
+extern SAI_HandleTypeDef hsai_BlockA1;
+extern SAI_HandleTypeDef hsai_BlockB1;
 
 /* -------------------- PLATFORM Prototypes ------------------------- */
 
-void TaskBodyFunction(const void* ptr);
+void TaskBodyFunction(const void *ptr);
+void I2cSearch(murasaki::I2CMasterStrategy *master);
 
 /* -------------------- PLATFORM Implementation ------------------------- */
 
 void InitPlatform()
 {
+#if ! MURASAKI_CONFIG_NOCYCCNT
+    // Start the cycle counter to measure the cycle in MURASAKI_SYSLOG.
+    murasaki::InitCycleCounter();
+#endif
+
     // UART device setting for console interface.
     // On Nucleo, the port connected to the USB port of ST-Link is
     // referred here.
@@ -76,37 +80,47 @@ void InitPlatform()
     // Set the debugger as AutoRePrint mode, for the easy operation.
     murasaki::debugger->AutoRePrint();  // type any key to show history.
 
-    // For demonstration, one GPIO LED port is reserved.
     // The port and pin names are fined by CubeIDE.
-    murasaki::platform.led = new murasaki::BitOut(LD2_GPIO_Port, LD2_Pin);
-    MURASAKI_ASSERT(nullptr != murasaki::platform.led)
+    murasaki::platform.led_st0 = new murasaki::BitOut(ST0_GPIO_Port, ST0_Pin);
+    MURASAKI_ASSERT(nullptr != murasaki::platform.led_st0)
 
-    // For demonstration of FreeRTOS task.
-    murasaki::platform.task1 = new murasaki::SimpleTask(
-                                                        "task1",
-                                                        256,
-                                                        murasaki::ktpNormal,
-                                                        nullptr,
-                                                        &TaskBodyFunction
-                                                        );
-    MURASAKI_ASSERT(nullptr != murasaki::platform.task1)
+    murasaki::platform.led_st1 = new murasaki::BitOut(ST1_GPIO_Port, ST1_Pin);
+    MURASAKI_ASSERT(nullptr != murasaki::platform.led_st1)
 
-    // Following block is just for sample.
-#if 0
-    // For demonstration of the serial communication.
-    murasaki::platform.uart = new murasaki::Uart(&huart2);
-    // For demonstration of master and slave I2C
-    murasaki::platform.i2cMaster = new murasaki::I2cMaster(&hi2c1);
-    murasaki::platform.i2cSlave = new murasaki::I2cSlave(&hi2c2);
-    // For demonstration of master and slave SPI
-    murasaki::platform.spiMaster = new murasaki::SpiMaster(&hspi1);
-    murasaki::platform.spiSlave = new murasaki::SpiSlave(&hspi4);
-#endif
+    murasaki::platform.i2c_master = new murasaki::I2cMaster(&hi2c1);
 
-#if ! MURASAKI_CONFIG_NOCYCCNT
-    // Start the cycle counter to measure the cycle in MURASAKI_SYSLOG.
-    murasaki::InitCycleCounter();
-#endif
+    // Initialize audio peripheral
+    // By Akashi02 board design, SAI1_B and SAI1_A are assigned to RX and TX, respectively.
+    murasaki::platform.sai = new murasaki::SaiPortAdaptor(
+                                                          &hsai_BlockB1, /* TX */
+                                                          &hsai_BlockA1); /* RX */
+    MURASAKI_ASSERT(nullptr != murasaki::platform.sai)
+
+    // CODEC initialization.
+    // Fs is up to application. MCLOCK must follow the board design.
+    murasaki::platform.codec = new murasaki::Adau1361(
+                                                      48000, /* Fs Sample/s */
+                                                      12000000, /* MCLOCK frequency [Hz] */
+                                                      murasaki::platform.i2c_master, /* I2C driver */
+                                                      CODEC_ADDRESS); /* I2C address of ADAU1361 on Akashi02 */
+    MURASAKI_ASSERT(nullptr != murasaki::platform.codec)
+
+    // Initializing audio.
+    murasaki::platform.audio = new murasaki::DuplexAudio(
+                                                         murasaki::platform.sai, /* Peripheral adapter */
+                                                         AUDIO_CHANNEL_LEN); /* Channel Block length by one DMA  */
+    MURASAKI_ASSERT(nullptr != murasaki::platform.audio)
+
+    // For demonstration of audio task.
+    murasaki::platform.audio_task = new murasaki::SimpleTask(
+                                                             "audio_task",
+                                                             512,
+                                                             murasaki::ktpRealtime,
+                                                             nullptr,
+                                                             &TaskBodyFunction
+                                                             );
+    MURASAKI_ASSERT(nullptr != murasaki::platform.audio_task)
+
 }
 
 void ExecPlatform()
@@ -114,71 +128,10 @@ void ExecPlatform()
     // counter for the demonstration.
     static int count = 0;
 
+    I2cSearch(murasaki::platform.i2c_master);
+
     // Following blocks are sample.
-#if 0
-    {
-        uint8_t data[5] = { 1, 2, 3, 4, 5 };
-        murasaki::UartStatus stat;
-
-        stat = murasaki::platform.uart->Transmit(
-                                                 data,
-                                                 5);
-
-    }
-
-    {
-        uint8_t data[5] = { 1, 2, 3, 4, 5 };
-        murasaki::I2cStatus stat;
-
-        stat = murasaki::platform.i2cMaster->Transmit(
-                                                      127,
-                                                      data,
-                                                      5);
-    }
-
-    {
-        uint8_t data[5];
-        murasaki::I2cStatus stat;
-
-        stat = murasaki::platform.i2cSlave->Receive(
-                                                    data,
-                                                    5);
-
-    }
-
-    {
-        // Create a slave adapter. This object specify the protocol and slave select pin
-        murasaki::SpiSlaveAdapterStrategy * slave_spec;
-        slave_spec = new murasaki::SpiSlaveAdapter(
-                                                   murasaki::kspoFallThenRise,
-                                                   murasaki::ksphLatchThenShift,
-                                                   SPI_SLAVE_SEL_GPIO_Port,
-                                                   SPI_SLAVE_SEL_Pin
-                                                   );
-
-        // Transmit and receive data through SPI
-        uint8_t tx_data[5] = { 1, 2, 3, 4, 5 };
-        uint8_t rx_data[5];
-        murasaki::SpiStatus stat;
-        stat = murasaki::platform.spiMaster->TransmitAndReceive(
-                                                                slave_spec,
-                                                                tx_data,
-                                                                rx_data,
-                                                                5);
-    }
-
-    {
-        // Transmit and receive data through SPI
-        uint8_t tx_data[5] = { 1, 2, 3, 4, 5 };
-        uint8_t rx_data[5];
-        murasaki::SpiStatus stat;
-        stat = murasaki::platform.spiSlave->TransmitAndReceive(
-                                                               tx_data,
-                                                               rx_data,
-                                                               5);
-    }
-#endif
-    murasaki::platform.task1->Start();
+    murasaki::platform.audio_task->Start();
 
     // Loop forever
     while (true) {
@@ -211,7 +164,7 @@ void ExecPlatform()
  * In this call back, the uart device handle have to be passed to the
  * murasaki::Uart::TransmissionCompleteCallback() function.
  */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart)
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
                              {
     // Poll all uart tx related interrupt receivers.
     // If hit, return. If not hit,check next.
@@ -235,7 +188,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart)
  * In this call back, the uart device handle have to be passed to the
  * murasaki::Uart::ReceiveCompleteCallback() function.
  */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef * huart)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                              {
     // Poll all uart rx related interrupt receivers.
     // If hit, return. If not hit,check next.
@@ -340,13 +293,13 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef * hspi) {
  * In this call back, the uart device handle have to be passed to the
  * murasaki::I2c::TransmitCompleteCallback() function.
  */
-void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef * hi2c)
+void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
                                   {
     // Poll all I2C master tx related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 0
-//    if (murasaki::platform.i2c_master->TransmitCompleteCallback(hi2c))
-//        return;
+#if 1
+    if (murasaki::platform.i2c_master->TransmitCompleteCallback(hi2c))
+        return;
 #endif
 }
 
@@ -364,12 +317,12 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef * hi2c)
  * In this call back, the uart device handle have to be passed to the
  * murasaki::Uart::ReceiveCompleteCallback() function.
  */
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef * hi2c) {
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
     // Poll all I2C master rx related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 0
+#if 1
     if (murasaki::platform.i2c_master->ReceiveCompleteCallback(hi2c))
-    return;
+        return;
 #endif
 }
 /**
@@ -387,7 +340,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef * hi2c) {
  * In this call back, the I2C slave device handle have to be passed to the
  * murasaki::I2cSlave::TransmitCompleteCallback() function.
  */
-void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef * hi2c)
+void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
                                  {
     // Poll all I2C master tx related interrupt receivers.
     // If hit, return. If not hit,check next.
@@ -411,7 +364,7 @@ void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef * hi2c)
  * In this call back, the I2C slave device handle have to be passed to the
  * murasaki::I2cSlave::ReceiveCompleteCallback() function.
  */
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef * hi2c) {
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
     // Poll all I2C master rx related interrupt receivers.
     // If hit, return. If not hit,check next.
 #if 0
@@ -435,12 +388,12 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef * hi2c) {
  * In this call back, the uart device handle have to be passed to the
  * murasaki::I2c::HandleError() function.
  */
-void HAL_I2C_ErrorCallback(I2C_HandleTypeDef * hi2c) {
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
     // Poll all I2C master error related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 0
+#if 1
     if (murasaki::platform.i2c_master->HandleError(hi2c))
-    return;
+        return;
 #endif
 }
 
@@ -457,8 +410,10 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef * hi2c) {
  * This interrupt have to be forwarded to the  murasaki::DuplexAudio::ReceiveCallback().
  * The second parameter of the ReceiveCallback() have to be 0 which mean the halfway interrupt.
  */
-void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef * hsai) {
+void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     if (murasaki::platform.audio->DmaCallback(hsai, 0)) {
+        murasaki::platform.led_st0->Set();
+        murasaki::platform.led_st1->Clear();
         return;
     }
 }
@@ -472,8 +427,10 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef * hsai) {
  * This interrupt have to be forwarded to the  murasaki::DuplexAudio::ReceiveCallback().
  * The second parameter of the ReceiveCallback() have to be 1 which mean the complete interrupt.
  */
-void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef * hsai) {
+void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
     if (murasaki::platform.audio->DmaCallback(hsai, 1)) {
+        murasaki::platform.led_st0->Clear();
+        murasaki::platform.led_st1->Set();
         return;
     }
 }
@@ -488,7 +445,7 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef * hsai) {
  * So, never return.
  */
 
-void HAL_SAI_ErrorCallback(SAI_HandleTypeDef * hsai) {
+void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
     if (murasaki::platform.audio->HandleError(hsai))
         return;
 }
@@ -551,7 +508,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  * By default, this routine output a message with location informaiton
  * to the debugger console.
  */
-void CustomAssertFailed(uint8_t* file, uint32_t line)
+void CustomAssertFailed(uint8_t *file, uint32_t line)
                         {
     murasaki::debugger->Printf("Wrong parameters value: file %s on line %d\n",
                                file,
@@ -597,7 +554,7 @@ __asm volatile (
  * Do not call from application. This is murasaki_internal_only.
  *
  */
-void PrintFaultResult(unsigned int * stack_pointer) {
+void PrintFaultResult(unsigned int *stack_pointer) {
 
     murasaki::debugger->Printf("\nSpurious exception or hardfault occured.  \n");
     murasaki::debugger->Printf("Stacked R0  : 0x%08X \n", stack_pointer[0]);
@@ -609,13 +566,13 @@ void PrintFaultResult(unsigned int * stack_pointer) {
     murasaki::debugger->Printf("Stacked PC  : 0x%08X \n", stack_pointer[6]);
     murasaki::debugger->Printf("Stacked PSR : 0x%08X \n", stack_pointer[7]);
 
-    murasaki::debugger->Printf("       CFSR : 0x%08X \n", *(unsigned int *) 0xE000ED28);
-    murasaki::debugger->Printf("       HFSR : 0x%08X \n", *(unsigned int *) 0xE000ED2C);
-    murasaki::debugger->Printf("       DFSR : 0x%08X \n", *(unsigned int *) 0xE000ED30);
-    murasaki::debugger->Printf("       AFSR : 0x%08X \n", *(unsigned int *) 0xE000ED3C);
+    murasaki::debugger->Printf("       CFSR : 0x%08X \n", *(unsigned int*) 0xE000ED28);
+    murasaki::debugger->Printf("       HFSR : 0x%08X \n", *(unsigned int*) 0xE000ED2C);
+    murasaki::debugger->Printf("       DFSR : 0x%08X \n", *(unsigned int*) 0xE000ED30);
+    murasaki::debugger->Printf("       AFSR : 0x%08X \n", *(unsigned int*) 0xE000ED3C);
 
-    murasaki::debugger->Printf("       MMAR : 0x%08X \n", *(unsigned int *) 0xE000ED34);
-    murasaki::debugger->Printf("       BFAR : 0x%08X \n", *(unsigned int *) 0xE000ED38);
+    murasaki::debugger->Printf("       MMAR : 0x%08X \n", *(unsigned int*) 0xE000ED34);
+    murasaki::debugger->Printf("       BFAR : 0x%08X \n", *(unsigned int*) 0xE000ED38);
 
     murasaki::debugger->Printf("(Note : To avoid the stacking by C compiler, use release build to investigate the fault. ) \n");
 
@@ -639,21 +596,49 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask,
 
 /* ------------------ User Functions -------------------------- */
 /**
- * @brief Demonstration task.
- * @param ptr Pointer to the parameter block
+ * @brief Audio demonstration task.
+ * @param ptr Pointer to the parameter block : Ignored.
  * @details
- * Task body function as demonstration of the @ref murasaki::SimpleTask.
+ * Simple talk thourgh
  *
- * You can delete this function if you don't use.
  */
-void TaskBodyFunction(const void* ptr)
-                      {
+void TaskBodyFunction(const void *ptr) {
+    // phase of the oscillator.
+    // Let's make phase [0,36000) representing [0,360).
 
-    while (true)  // dummy loop
-    {
-        murasaki::platform.led->Toggle();  // toggling LED
-        murasaki::Sleep(700);
+    // audio buffer for left and right, tx and rx.
+    float *l_tx = new float[AUDIO_CHANNEL_LEN];
+    float *r_tx = new float[AUDIO_CHANNEL_LEN];
+    float *l_rx = new float[AUDIO_CHANNEL_LEN];
+    float *r_rx = new float[AUDIO_CHANNEL_LEN];
+
+    murasaki::platform.codec->Start();
+
+    murasaki::SetSyslogFacilityMask(murasaki::kfaAudioCodec);
+    murasaki::SetSyslogSererityThreshold(murasaki::kseDebug);
+
+    murasaki::platform.codec->SetHpOutputGain(0.0, 0.0);  // right gain in dB, left gain in dB
+    murasaki::platform.codec->SetLineInputGain(0.0, 0.0);  // right gain in dB, left gain in dB
+    murasaki::platform.codec->SetLineOutputGain(0.0, 0.0);
+
+    // Loop forever
+    while (true) {
+
+        // Talk through : copy received data to transmit.
+        for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
+            l_tx[i] = l_rx[i];
+            r_tx[i] = r_rx[i];
+        }
+
+        // Wait last TX/RX. Then, copy TX data to DMA TX buffer and copy DMA RX buffer to RX data.
+        murasaki::platform.audio->TransmitAndReceive(
+                                                     l_tx,
+                                                     r_tx,
+                                                     l_rx,
+                                                     r_rx);
+
     }
+
 }
 
 /**
@@ -665,8 +650,8 @@ void TaskBodyFunction(const void* ptr)
  *
  * This function can be deleted if you don't use.
  */
-#if 0
-void I2cSearch(murasaki::I2CMasterStrategy * master)
+#if 1
+void I2cSearch(murasaki::I2CMasterStrategy *master)
                {
     uint8_t tx_buf[1];
 
@@ -683,7 +668,7 @@ void I2cSearch(murasaki::I2CMasterStrategy * master)
             // check whether device exist or not.
             result = master->Transmit(raw + col, tx_buf, 0);
             if (result == murasaki::ki2csOK)  // device acknowledged.
-                murasaki::debugger->Printf(" %2X", raw + col); // print address
+                murasaki::debugger->Printf(" %2X", raw + col);  // print address
             else if (result == murasaki::ki2csNak)  // no device
                 murasaki::debugger->Printf(" --");
             else
