@@ -617,9 +617,16 @@ void TaskBodyFunction(const void *ptr) {
     murasaki::SetSyslogFacilityMask(murasaki::kfaAudioCodec);
     murasaki::SetSyslogSererityThreshold(murasaki::kseDebug);
 
-    murasaki::platform.codec->SetHpOutputGain(0.0, 0.0);  // right gain in dB, left gain in dB
-    murasaki::platform.codec->SetLineInputGain(0.0, 0.0);  // right gain in dB, left gain in dB
-    murasaki::platform.codec->SetLineOutputGain(0.0, 0.0);
+    murasaki::platform.codec->SetGain(
+                                      murasaki::kccLineInput,
+                                      0.0,
+                                      0.0);  // right gain in dB, left gain in dB
+    murasaki::platform.codec->SetGain(
+                                      murasaki::kccHeadphoneOutput,
+                                      0.0,
+                                      0.0);  // right gain in dB, left gain in dB
+    murasaki::platform.codec->Mute(murasaki::kccLineInput, false);
+    murasaki::platform.codec->Mute(murasaki::kccHeadphoneOutput, false);
 
     // Loop forever
     while (true) {
