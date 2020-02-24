@@ -90,7 +90,7 @@ void InitPlatform()
 
     // Initialize audio peripheral
     // By Akashi02 board design, SAI1_B and SAI1_A are assigned to RX and TX, respectively.
-    murasaki::platform.sai = new murasaki::SaiPortAdaptor(
+    murasaki::platform.sai = new murasaki::SaiPortAdapter(
                                                           &hsai_BlockB1, /* TX */
                                                           &hsai_BlockA1); /* RX */
     MURASAKI_ASSERT(nullptr != murasaki::platform.sai)
@@ -630,8 +630,8 @@ void TaskBodyFunction(const void *ptr) {
 
         // Talk through : copy received data to transmit.
         for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
-            l_tx[i] = l_rx[i];
-            r_tx[i] = r_rx[i];
+            l_tx[i] = l_rx[i] * 0.9;
+            r_tx[i] = r_rx[i] * 0.9;
         }
 
         // Wait last TX/RX. Then, copy TX data to DMA TX buffer and copy DMA RX buffer to RX data.
