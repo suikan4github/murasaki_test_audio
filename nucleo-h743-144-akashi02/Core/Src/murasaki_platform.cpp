@@ -128,7 +128,7 @@ void ExecPlatform()
     // counter for the demonstration.
     static int count = 0;
 
-    I2cSearch(murasaki::platform.i2c_master);
+    // I2cSearch(murasaki::platform.i2c_master);
 
     // Following blocks are sample.
     murasaki::platform.audio_task->Start();
@@ -412,8 +412,6 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
  */
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     if (murasaki::platform.audio->DmaCallback(hsai, 0)) {
-        murasaki::platform.led_st0->Set();
-        murasaki::platform.led_st1->Clear();
         return;
     }
 }
@@ -429,8 +427,6 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
  */
 void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
     if (murasaki::platform.audio->DmaCallback(hsai, 1)) {
-        murasaki::platform.led_st0->Clear();
-        murasaki::platform.led_st1->Set();
         return;
     }
 }
@@ -612,6 +608,12 @@ void TaskBodyFunction(const void *ptr) {
     float *l_rx = new float[AUDIO_CHANNEL_LEN];
     float *r_rx = new float[AUDIO_CHANNEL_LEN];
 
+    // Fill by zero to avoid the big noise at beginning.
+    for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
+        l_tx[i] = 0.0;
+        r_tx[i] = 0.0;
+    }
+
     murasaki::platform.codec->Start();
 
     murasaki::SetSyslogFacilityMask(murasaki::kfaAudioCodec);
@@ -628,14 +630,11 @@ void TaskBodyFunction(const void *ptr) {
     murasaki::platform.codec->Mute(murasaki::kccLineInput, false);
     murasaki::platform.codec->Mute(murasaki::kccHeadphoneOutput, false);
 
+    murasaki::platform.led_st0->Set();
+    murasaki::platform.led_st1->Clear();
+
     // Loop forever
     while (true) {
-
-        // Talk through : copy received data to transmit.
-        for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
-            l_tx[i] = l_rx[i];
-            r_tx[i] = r_rx[i];
-        }
 
         // Wait last TX/RX. Then, copy TX data to DMA TX buffer and copy DMA RX buffer to RX data.
         murasaki::platform.audio->TransmitAndReceive(
@@ -643,6 +642,15 @@ void TaskBodyFunction(const void *ptr) {
                                                      r_tx,
                                                      l_rx,
                                                      r_rx);
+
+        // Talk through : copy received data to transmit.
+        for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
+            l_tx[i] = l_rx[i];
+            r_tx[i] = r_rx[i];
+        }
+
+        murasaki::platform.led_st0->Toggle();
+        murasaki::platform.led_st1->Toggle();
 
     }
 
@@ -657,7 +665,7 @@ void TaskBodyFunction(const void *ptr) {
  *
  * This function can be deleted if you don't use.
  */
-#if 1
+#if 0
 void I2cSearch(murasaki::I2CMasterStrategy *master)
                {
     uint8_t tx_buf[1];
