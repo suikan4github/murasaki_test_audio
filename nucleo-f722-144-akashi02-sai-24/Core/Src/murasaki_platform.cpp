@@ -631,8 +631,8 @@ void TaskBodyFunction(const void *ptr) {
         // Talk through : copy received data to transmit.
         for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
 #if 0
-            l_tx[i] = 0.000001;
-            r_tx[i] = -0.000001;
+            l_tx[i] = l_rx[i];
+            r_tx[i] = r_rx[i];
 #else
             l_tx[i] = l_rx[i] * 0.9;
             r_tx[i] = r_rx[i] * 0.9;
