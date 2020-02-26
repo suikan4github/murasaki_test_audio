@@ -664,7 +664,7 @@ void TaskBodyFunction(const void *ptr) {
 
     murasaki::platform.codec->Start();
 
-    murasaki::SetSyslogFacilityMask(murasaki::kfaAudioCodec);
+    murasaki::SetSyslogFacilityMask(murasaki::kfaI2s);
     murasaki::SetSyslogSererityThreshold(murasaki::kseDebug);
 
     murasaki::platform.codec->SetGain(
@@ -678,9 +678,18 @@ void TaskBodyFunction(const void *ptr) {
     murasaki::platform.codec->Mute(murasaki::kccLineInput, false);
     murasaki::platform.codec->Mute(murasaki::kccHeadphoneOutput, false);
 
+    int count = 1;
     // Loop forever
     while (true) {
 
+        if (count == 5)
+                {
+            murasaki::SetSyslogSererityThreshold(murasaki::kseError);
+        }
+        else
+        {
+            count++;
+        }
         // Talk through : copy received data to transmit.
         for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
 #if 0
