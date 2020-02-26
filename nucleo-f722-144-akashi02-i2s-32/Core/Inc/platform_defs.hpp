@@ -44,7 +44,7 @@ struct Platform
     I2CMasterStrategy *i2c_master;  ///< I2C Master
 
     AudioCodecStrategy *codec;      ///< adau1361
-    AudioPortAdapterStrategy *sai;      ///< SAI peripheral adapter
+    AudioPortAdapterStrategy *audio_port;      ///< SAI peripheral adapter
     DuplexAudio *audio;             ///< duplex audio class.
 
     // Following block is just sample

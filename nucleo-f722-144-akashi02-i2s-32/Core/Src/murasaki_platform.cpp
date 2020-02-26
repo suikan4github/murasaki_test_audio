@@ -16,7 +16,7 @@
 // Include the prototype  of functions of this file.
 
 /* -------------------- PLATFORM Macros -------------------------- */
-#define AUDIO_CHANNEL_LEN 128
+#define AUDIO_CHANNEL_LEN 48
 #define CODEC_ADDRESS 0x38
 
 /* -------------------- PLATFORM Type and classes -------------------------- */
@@ -87,11 +87,8 @@ void InitPlatform()
     MURASAKI_ASSERT(nullptr != murasaki::platform.led_st1)
 
     murasaki::platform.i2c_master = new murasaki::I2cMaster(&hi2c1);
+    MURASAKI_ASSERT(nullptr != murasaki::platform.i2c_master)
 
-    // Initialize audio peripheral
-    // By Akashi02 board design, SAI1_B and SAI1_A are assigned to RX and TX, respectively.
-    murasaki::platform.sai = new murasaki::I2sPortAdapter(&hi2s1, &hi2s2);
-    MURASAKI_ASSERT(nullptr != murasaki::platform.sai)
     // CODEC initialization.
     // Fs is up to application. MCLOCK must follow the board design.
     murasaki::platform.codec = new murasaki::Adau1361(
@@ -101,9 +98,14 @@ void InitPlatform()
                                                       CODEC_ADDRESS); /* I2C address of ADAU1361 on Akashi02 */
     MURASAKI_ASSERT(nullptr != murasaki::platform.codec)
 
+    // Initialize audio peripheral
+    // By Akashi02 board design, I2S1 and I2S2 are assigned to RX and TX, respectively.
+    murasaki::platform.audio_port = new murasaki::I2sPortAdapter(&hi2s1, &hi2s2);
+    MURASAKI_ASSERT(nullptr != murasaki::platform.audio_port)
+
     // Initializing audio.
     murasaki::platform.audio = new murasaki::DuplexAudio(
-                                                         murasaki::platform.sai, /* Peripheral adapter */
+                                                         murasaki::platform.audio_port, /* Peripheral adapter */
                                                          AUDIO_CHANNEL_LEN); /* Channel Block length by one DMA  */
     MURASAKI_ASSERT(nullptr != murasaki::platform.audio)
 
