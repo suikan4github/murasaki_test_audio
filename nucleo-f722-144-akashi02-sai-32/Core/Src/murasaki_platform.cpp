@@ -26,6 +26,7 @@
 // Essential definition.
 // Do not delete
 murasaki::Platform murasaki::platform;
+murasaki::Debugger *murasaki::debugger;
 
 /* ------------------------ STM32 Peripherals ----------------------------- */
 
