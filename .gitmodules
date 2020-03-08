@@ -7,9 +7,6 @@
 [submodule "nucleo-f722-144-akashi02-sai-24/murasaki"]
 	path = nucleo-f722-144-akashi02-sai-24/murasaki
 	url = git@github.com:suikan4github/murasaki.git
-[submodule "nucleo-h743-144-akashi02-sai-32/murasaki"]
-	path = nucleo-h743-144-akashi02-sai-32/murasaki
-	url = git@github.com:suikan4github/murasaki.git
 [submodule "nucleo-f722-144-akashi02-sai-16/murasaki"]
 	path = nucleo-f722-144-akashi02-sai-16/murasaki
 	url = git@github.com:suikan4github/murasaki.git
@@ -27,4 +24,10 @@
 	url = git@github.com:suikan4github/murasaki.git
 [submodule "nucleo-f722-144-akashi02-i2s-16ex/murasaki"]
 	path = nucleo-f722-144-akashi02-i2s-16ex/murasaki
+	url = git@github.com:suikan4github/murasaki.git
+[submodule "nucleo-h743-144-akashi02-sai-32/--force"]
+	path = nucleo-h743-144-akashi02-sai-32/--force
+	url = git@github.com:suikan4github/murasaki.git
+[submodule "nucleo-h743-144-akashi02-sai-32/murasaki"]
+	path = nucleo-h743-144-akashi02-sai-32/murasaki
 	url = git@github.com:suikan4github/murasaki.git

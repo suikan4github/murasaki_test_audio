@@ -40,6 +40,7 @@ murasaki::Debugger *murasaki::debugger;
  * The declaration here is user project dependent.
  */
 // Following block is just sample.
+// Original declaration is in the top of main.c.
 extern UART_HandleTypeDef huart3;
 extern I2C_HandleTypeDef hi2c1;
 extern SAI_HandleTypeDef hsai_BlockA1;
@@ -122,9 +123,7 @@ void InitPlatform()
 void ExecPlatform()
 {
     // counter for the demonstration.
-    static int count = 0;
-
-    I2cSearch(murasaki::platform.i2c_master);
+    int count = 0;
 
     murasaki::platform.audio_task->Start();
 
@@ -138,7 +137,7 @@ void ExecPlatform()
         count++;
 
         // wait for a while
-        murasaki::Sleep(500);
+        murasaki::Sleep(5000);
     }
 }
 
@@ -237,10 +236,8 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
     // Poll all SPI TX RX related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 0
      if ( murasaki::platform.spi1->TransmitAndReceiveCompleteCallback(hspi) )
-     return;
-#endif
+         return;
 }
 
 /**
@@ -261,10 +258,8 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef * hspi) {
     // Poll all SPI error interrupt related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 0
      if ( murasaki::platform.spi1->HandleError(hspi) )
-     return;
-#endif
+         return;
 }
 
 #endif
@@ -292,10 +287,8 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
                                   {
     // Poll all I2C master tx related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 1
     if (murasaki::platform.i2c_master->TransmitCompleteCallback(hi2c))
         return;
-#endif
 }
 
 /**
@@ -315,10 +308,8 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
     // Poll all I2C master rx related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 1
     if (murasaki::platform.i2c_master->ReceiveCompleteCallback(hi2c))
         return;
-#endif
 }
 /**
  * @brief Essential to sync up with I2C.
@@ -339,10 +330,8 @@ void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
                                  {
     // Poll all I2C master tx related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 0
-    if (murasaki::platform.i2c_slave->TransmitCompleteCallback(hi2c))
-    return;
-#endif
+//    if (murasaki::platform.i2c_slave->TransmitCompleteCallback(hi2c))
+//        return;
 }
 
 /**
@@ -362,10 +351,8 @@ void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
     // Poll all I2C master rx related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 0
-    if (murasaki::platform.i2c_slave->ReceiveCompleteCallback(hi2c))
-    return;
-#endif
+//    if (murasaki::platform.i2c_slave->ReceiveCompleteCallback(hi2c))
+//        return;
 }
 
 /**
@@ -386,10 +373,8 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
     // Poll all I2C master error related interrupt receivers.
     // If hit, return. If not hit,check next.
-#if 1
     if (murasaki::platform.i2c_master->HandleError(hi2c))
         return;
-#endif
 }
 
 #endif
@@ -407,8 +392,6 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
  */
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     if (murasaki::platform.audio->DmaCallback(hsai, 0)) {
-        murasaki::platform.led_st0->Clear();
-        murasaki::platform.led_st1->Set();
         return;
     }
 }
@@ -424,8 +407,6 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
  */
 void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
     if (murasaki::platform.audio->DmaCallback(hsai, 1)) {
-        murasaki::platform.led_st0->Set();
-        murasaki::platform.led_st1->Clear();
         return;
     }
 }
@@ -447,7 +428,98 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
 
 #endif
 
-/* -------------------------- GPIO ---------------------------------- */
+/* ------------------ I2S  -------------------------- */
+#ifdef HAL_I2S_MODULE_ENABLED
+/**
+ * @brief Optional I2S interrupt handler at buffer transfer halfway.
+ * @ingroup MURASAKI_PLATFORM_GROUP
+ * @param hsai Handler of the I2S device.
+ * @details
+ * Invoked after I2S RX DMA complete interrupt is at halfway.
+ * This interrupt have to be forwarded to the  murasaki::DuplexAudio::ReceiveCallback().
+ * The second parameter of the ReceiveCallback() have to be 0 which mean the halfway interrupt.
+ */
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
+    if (murasaki::platform.audio->DmaCallback(hi2s, 0)) {
+        murasaki::platform.led_st0->Clear();
+        murasaki::platform.led_st1->Set();
+        return;
+    }
+}
+
+/**
+ * @brief Optional I2S interrupt handler at buffer transfer complete.
+ * @ingroup MURASAKI_PLATFORM_GROUP
+ * @param hsai Handler of the I2S device.
+ * @details
+ * Invoked after I2S RX DMA complete interrupt is at halfway.
+ * This interrupt have to be forwarded to the  murasaki::DuplexAudio::ReceiveCallback().
+ * The second parameter of the ReceiveCallback() have to be 1 which mean the complete interrupt.
+ */
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
+    if (murasaki::platform.audio->DmaCallback(hi2s, 1)) {
+        murasaki::platform.led_st0->Set();
+        murasaki::platform.led_st1->Clear();
+        return;
+    }
+}
+
+/**
+ * @brief Optional I2S error interrupt handler.
+ * @ingroup MURASAKI_PLATFORM_GROUP
+ * @param hsai Handler of the I2S device.
+ * @details
+ * The error have to be forwarded to murasaki::DuplexAudio::HandleError().
+ * Note that DuplexAudio::HandleError() trigger a hard fault.
+ * So, never return.
+ */
+
+void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s) {
+    if (murasaki::platform.audio->HandleError(hi2s))
+        return;
+}
+
+#endif
+
+/* ------------------ ADC -------------------------- */
+
+#ifdef HAL_ADC_MODULE_ENABLED
+
+/**
+ * @brief Optional interrupt handler for ADC.
+ * @param hadc Pointer to the Adc control structure.
+ * @details
+ * This is called from inside of HAL when an ADC conversion is done.
+ *
+ * STM32Cube HAL has same name function internally.
+ * That function is invoked whenever an relevant interrupt happens.
+ * In the other hand, that function is declared as weak bound.
+ * As a result, this function overrides the default error interrupt call back.
+ *
+ */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+                              {
+    if (murasaki::platform.adc->ConversionCompleteCallback(hadc))
+        return;
+}
+
+/**
+ * @brief Optional interrupt handler for ADC.
+ * @param hadc Pointer to the Adc control structure.
+ * @details
+ * This is called from inside of HAL when an ADC conversion failed by Error.
+ *
+ *
+ */
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc)
+                           {
+    if (murasaki::platform.adc->HandleError(hadc))
+        return;
+}
+
+#endif
+
+/* -------------------------- EXTI ---------------------------------- */
 
 /**
  * @brief Optional interrupt handling of EXTI
@@ -472,14 +544,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     // This switch can be configured as EXTI interrupt srouce.
     // In this sample, releasing the waiting task if interrupt comes.
 
-    // Check whether appropriate interrupt or not
-    if ( USER_Btn_Pin == GPIO_Pin) {
-        // Check whether sync object is ready or not.
-        // This check is essential from the interrupt before the platform variable is ready
-        if (murasaki::platform.sync_with_button != nullptr)
-        // release the waiting task
-            murasaki::platform.sync_with_button->Release();
-    }
+    // Check whether sync object is ready or not.
+    // This check is essential from the interrupt before the platform variable is ready
+    if (murasaki::platform.exti_b1 != nullptr)
+        // The Release member function return true, if the given parameter matched with
+        // its interrupt line.
+        if (murasaki::platform.exti_b1->Release(GPIO_Pin))
+            return;
+
 #endif
 }
 
@@ -608,6 +680,9 @@ void TaskBodyFunction(const void *ptr) {
     float *l_rx = new float[AUDIO_CHANNEL_LEN];
     float *r_rx = new float[AUDIO_CHANNEL_LEN];
 
+    murasaki::platform.led_st0->Set();
+    murasaki::platform.led_st1->Clear();
+
     murasaki::platform.codec->Start();
 
     murasaki::SetSyslogFacilityMask(murasaki::kfaAudioCodec);
@@ -629,13 +704,8 @@ void TaskBodyFunction(const void *ptr) {
 
         // Talk through : copy received data to transmit.
         for (int i = 0; i < AUDIO_CHANNEL_LEN; i++) {
-#if 0
-            l_tx[i] = l_rx[i];
-            r_tx[i] = r_rx[i];
-#else
             l_tx[i] = l_rx[i] * 0.9;
             r_tx[i] = r_rx[i] * 0.9;
-#endif
         }
 
         // Wait last TX/RX. Then, copy TX data to DMA TX buffer and copy DMA RX buffer to RX data.
@@ -644,7 +714,8 @@ void TaskBodyFunction(const void *ptr) {
                                                      r_tx,
                                                      l_rx,
                                                      r_rx);
-
+        murasaki::platform.led_st0->Toggle();
+        murasaki::platform.led_st1->Toggle();
     }
 
 }

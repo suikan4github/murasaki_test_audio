@@ -62,6 +62,8 @@ void Error_Handler(void);
 #define USER_Btn_GPIO_Port GPIOC
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
+#define ST1_Pin GPIO_PIN_11
+#define ST1_GPIO_Port GPIOB
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
 #define STLK_RX_Pin GPIO_PIN_8
@@ -74,6 +76,8 @@ void Error_Handler(void);
 #define USB_OverCurrent_GPIO_Port GPIOG
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
+#define ST0_Pin GPIO_PIN_0
+#define ST0_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
