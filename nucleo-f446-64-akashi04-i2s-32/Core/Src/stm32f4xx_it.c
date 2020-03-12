@@ -62,6 +62,7 @@
 extern I2C_HandleTypeDef hi2c1;
 extern DMA_HandleTypeDef hdma_spi2_tx;
 extern DMA_HandleTypeDef hdma_spi3_rx;
+extern I2S_HandleTypeDef hi2s2;
 extern I2S_HandleTypeDef hi2s3;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
@@ -251,6 +252,20 @@ void I2C1_ER_IRQHandler(void)
   /* USER CODE BEGIN I2C1_ER_IRQn 1 */
 
   /* USER CODE END I2C1_ER_IRQn 1 */
+}
+
+/**
+  * @brief This function handles SPI2 global interrupt.
+  */
+void SPI2_IRQHandler(void)
+{
+  /* USER CODE BEGIN SPI2_IRQn 0 */
+
+  /* USER CODE END SPI2_IRQn 0 */
+  HAL_I2S_IRQHandler(&hi2s2);
+  /* USER CODE BEGIN SPI2_IRQn 1 */
+
+  /* USER CODE END SPI2_IRQn 1 */
 }
 
 /**
