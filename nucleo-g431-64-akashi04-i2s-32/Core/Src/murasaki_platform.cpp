@@ -128,6 +128,8 @@ void ExecPlatform()
 
     I2cSearch(murasaki::platform.i2c_master);
 
+    murasaki::platform.audio_task->Start();
+
     // Loop forever
     while (true) {
 
