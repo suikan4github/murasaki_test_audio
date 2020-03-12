@@ -123,7 +123,7 @@ void InitPlatform()
 void ExecPlatform()
 {
     // counter for the demonstration.
-    static int count = 0;
+    int count = 0;
 
     I2cSearch(murasaki::platform.i2c_master);
 
