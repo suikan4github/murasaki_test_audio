@@ -38,7 +38,7 @@ struct Platform
     BitOutStrategy *led_st1;           ///< GP out
     TaskStrategy *audio_task;      ///< Driving Audio
 
-    I2CMasterStrategy *i2c_master;  ///< I2C Master
+    I2cMasterStrategy *i2c_master;  ///< I2C Master
 
     AudioCodecStrategy *codec;      ///< adau1361
     AudioPortAdapterStrategy *audio_port;      ///< SAI peripheral adapter
