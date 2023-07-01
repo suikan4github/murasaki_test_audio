@@ -82,6 +82,7 @@ void Error_Handler(void);
 #define LD2_GPIO_Port GPIOB
 #define ST0_Pin GPIO_PIN_0
 #define ST0_GPIO_Port GPIOE
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -91,5 +92,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
