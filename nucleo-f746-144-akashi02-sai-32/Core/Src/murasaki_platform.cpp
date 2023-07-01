@@ -12,6 +12,7 @@
 
 // Include the murasaki class library.
 #include "murasaki.hpp"
+#include "../drivers/codec/adau1361.hpp"
 
 // Include the prototype  of functions of this file.
 
@@ -168,7 +169,7 @@ void TaskBodyFunction(const void *ptr) {
     murasaki::platform.codec->Start();
 
     murasaki::SetSyslogFacilityMask(murasaki::kfaAudioCodec);
-    murasaki::SetSyslogSererityThreshold(murasaki::kseDebug);
+    murasaki::SetSyslogSeverityThreshold(murasaki::kseDebug);
 
     murasaki::platform.codec->SetGain(
                                       murasaki::kccLineInput,

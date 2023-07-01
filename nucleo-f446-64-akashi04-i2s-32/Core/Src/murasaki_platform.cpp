@@ -9,6 +9,7 @@
 // Include the definition created by CubeIDE.
 #include <murasaki_platform.hpp>
 #include "main.h"
+#include "../drivers/codec/adau1361.hpp"
 
 // Include the murasaki class library.
 #include "murasaki.hpp"
@@ -169,7 +170,7 @@ void TaskBodyFunction(const void *ptr) {
     murasaki::platform.codec->Start();
 
     murasaki::SetSyslogFacilityMask(murasaki::kfaI2s);
-    murasaki::SetSyslogSererityThreshold(murasaki::kseDebug);
+    murasaki::SetSyslogSeverityThreshold(murasaki::kseDebug);
 
     murasaki::platform.codec->SetGain(
                                       murasaki::kccLineInput,
@@ -188,7 +189,7 @@ void TaskBodyFunction(const void *ptr) {
 
         if (count == 5)
                 {
-            murasaki::SetSyslogSererityThreshold(murasaki::kseError);
+            murasaki::SetSyslogSeverityThreshold(murasaki::kseError);
         }
         else
         {
