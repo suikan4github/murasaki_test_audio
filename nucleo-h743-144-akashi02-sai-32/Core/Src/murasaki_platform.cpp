@@ -17,7 +17,7 @@
 // Include the prototype  of functions of this file.
 
 /* -------------------- PLATFORM Macros -------------------------- */
-#define AUDIO_CHANNEL_LEN 48
+#define AUDIO_CHANNEL_LEN 64
 #define CODEC_ADDRESS 0x38
 
 /* -------------------- PLATFORM Type and classes -------------------------- */
