@@ -1,0 +1,42 @@
+[submodule "nucleo-f746-144-akashi02-sai-32/murasaki"]
+	path = nucleo-f746-144-akashi02-sai-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-sai-32/murasaki"]
+	path = nucleo-f722-144-akashi02-sai-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-sai-24/murasaki"]
+	path = nucleo-f722-144-akashi02-sai-24/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-sai-16/murasaki"]
+	path = nucleo-f722-144-akashi02-sai-16/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-sai-16ex/murasaki"]
+	path = nucleo-f722-144-akashi02-sai-16ex/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-i2s-32/murasaki"]
+	path = nucleo-f722-144-akashi02-i2s-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-i2s-24/murasaki"]
+	path = nucleo-f722-144-akashi02-i2s-24/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-i2s-16/murasaki"]
+	path = nucleo-f722-144-akashi02-i2s-16/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f722-144-akashi02-i2s-16ex/murasaki"]
+	path = nucleo-f722-144-akashi02-i2s-16ex/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-h743-144-akashi02-sai-32/murasaki"]
+	path = nucleo-h743-144-akashi02-sai-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-h743-144-akashi02-sai-32/murasaki"]
+	path = nucleo-h743-144-akashi02-sai-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-f446-64-akashi04-i2s-32/murasaki"]
+	path = nucleo-f446-64-akashi04-i2s-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-g431-64-akashi04-i2s-32/murasaki"]
+	path = nucleo-g431-64-akashi04-i2s-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-h743zi-144-akashi02-sai-32/murasaki"]
+	path = nucleo-h743zi-144-akashi02-sai-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
