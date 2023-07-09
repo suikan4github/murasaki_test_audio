@@ -37,3 +37,6 @@
 [submodule "nucleo-g431-64-akashi04-i2s-32/murasaki"]
 	path = nucleo-g431-64-akashi04-i2s-32/murasaki
 	url = https://github.com/suikan4github/murasaki.git
+[submodule "nucleo-h743zi-144-akashi02-sai-32/murasaki"]
+	path = nucleo-h743zi-144-akashi02-sai-32/murasaki
+	url = https://github.com/suikan4github/murasaki.git
